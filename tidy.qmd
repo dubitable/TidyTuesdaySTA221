@@ -1,0 +1,69 @@
+---
+title: "Tidy Tuesday"
+author: "Pierre Quereuil"
+date: "Apr 15, 2025"
+format: pdf
+execute: 
+  warning: false
+  message: false
+  echo: false
+editor: visual
+---
+
+```{r}
+library(rms)
+library(readr)
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(openintro)    
+library(knitr)  
+library(ggimage)
+```
+
+```{r}
+cpu <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2019/2019-09-03/cpu.csv")
+```
+
+```{r}
+cpu <- cpu |>
+  mutate(logo = case_when(
+    designer == "Intel" ~ "https://cdn.iconscout.com/icon/free/png-256/free-intel-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-vol-4-pack-logos-icons-2945009.png?f=webp&w=256",
+    designer == "AMD" ~ "https://cdn.freebiesupply.com/logos/large/2x/amd-4-logo-png-transparent.png",
+    designer == "IBM" ~ "https://purepng.com/public/uploads/large/purepng.com-ibm-logologobrand-logoiconslogos-251519939176ka7y8.png",
+    designer == "Apple" ~ "https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo.png",
+    designer == "Fujitsu" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fujitsu-Logo.svg/2560px-Fujitsu-Logo.svg.png",
+    designer == "Motorola" ~ "https://1000logos.net/wp-content/uploads/2017/04/Motorola-Logo.png",
+    designer == "Qualcomm" ~ "https://1000logos.net/wp-content/uploads/2020/08/Qualcomm-Logo.png",
+    designer == "Acorn" ~ "https://media.nostalgianerd.com/file/w_688,h_240,c_fit,q_80/acorn-logo.png",
+    designer == "Hitachi" ~ "https://1000logos.net/wp-content/uploads/2017/12/Hitachi-Logo.png",
+    designer == "Huawei" ~ "https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Huawei_Standard_logo.svg/2016px-Huawei_Standard_logo.svg.png",
+    designer == "NEC" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/NEC_logo.svg/2560px-NEC_logo.svg.png",
+    designer == "ARM" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Arm_logo_2017.svg/2560px-Arm_logo_2017.svg.png",
+    designer == "Texas Instruments" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Texas_Instruments_logo_2024.svg/330px-Texas_Instruments_logo_2024.svg.png",
+    designer == "Microsoft/AMD" ~ "https://static.vecteezy.com/system/resources/previews/027/127/473/non_2x/microsoft-logo-microsoft-icon-transparent-free-png.png",
+    designer == "RCA" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/RCA_Electronics_logo.svg/2560px-RCA_Electronics_logo.svg.png",
+    designer == "WDC" ~ "https://en.wikichip.org/w/images/thumb/f/ff/wdc_logo.svg/200px-wdc_logo.svg.png",
+    designer == "Zilog" ~ "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Zilog_logo.svg/1200px-Zilog_logo.svg.png"
+  ))
+```
+
+```{r}
+#| warning: false
+
+cpu |>
+  mutate(ref = 2250 * 2**((date_of_introduction - 1970) / 2)) |>
+  ggplot(aes(x = date_of_introduction, y = transistor_count)) + 
+  geom_image(aes(image = logo)) +
+  geom_line(aes(y = ref, color = "Moore's Law"), linetype = "3313", linewidth = 1) +
+  geom_smooth(aes(color = "Best Fit"), 
+              formula = y ~ x, method = "lm", 
+              se = FALSE, linewidth = 1, linetype = "3313") +
+  scale_y_continuous(trans='log2', labels = scales::scientific, 
+                     limits = c(min(cpu$transistor_count, na.rm = TRUE), 
+                                max(cpu$transistor_count, na.rm = TRUE))) +
+  labs(title = "Does Moore's Law Work?", 
+       subtitle = "Transistor Counts of CPUs by Year (Log Scale)",
+       x = "Date of Introduction of CPU",
+       y = "Transistor Count")
+```
